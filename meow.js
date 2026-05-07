@@ -1,6 +1,6 @@
-const CameraFeed = document.getElementsByClassName('CameraFeed');
-const Clickybutton = document.getElementsByClassName('.Clickybutton');
-const Canvas = document.getElementById('.Canvas');
+const CameraFeed = document.getElementById('CameraFeed');
+const Clickybutton = document.getElementsByClassName('Clickybutton');
+const Canvas = document.getElementById('Canvas');
 
 navigator.mediaDevices.getUserMedia({video: true})
 .then(Stream => {
