@@ -15,17 +15,33 @@ display: flex;
 flex-direction: column;
 justify-content: center;
 align-items: center;
+width: 750px;
 
 }
 
 .wowcameragoeshere{
-    width: 500px;
-    height: 400px;
+    
+    height: 1500px;
+    width: 600px;
     position: relative;
     border: 5px solid pink;
     border-radius: 5px;
     background-color: antiquewhite;
     top: 50px;
+   
+    align-self: center;
+    align-items: center;
+    align-content: center;
+    
+
+}
+
+.countdown {
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    border: #4ca2cd;
+    font-weight: bold;
+    font-size: 40px;
 
 }
 
@@ -34,6 +50,10 @@ align-items: center;
 width: 100%;
 height: 100%;
 object-fit: cover;
+ 
+   
+    top: 3px;
+    bottom: 350px;
 
 }
 
@@ -46,11 +66,43 @@ object-fit: cover;
     border-style:double;
     border-color: pink;
     position: absolute;
-    left: 45%;
-    bottom: 0;
-    transform: translateX(-45%), translateY(-250px);
+  
+   
     background-color: transparent;
     color: pink;
-    text-align: center;
+    
 
 }
+
+
+
+.frame-overlay {
+    position: absolute;
+    top: 0;
+    align-self: center;
+    height: 1500px;
+    width: auto;
+    object-fit: cover;
+    
+    z-index: 3;
+    transform: scaleX(-1);
+
+ 
+}
+#finalCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.meowymeow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 33.3%; 
+  object-fit: cover;
+  transform: scaleX(-1);
+  z-index: 1;
+ 
+}
+
