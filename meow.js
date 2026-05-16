@@ -1,3 +1,9 @@
+const WIDTH = 500;
+const HEIGHT = 1470;
+const HALF = HEIGHT / 2;
+
+
+
 const elements = {
  video: document.getElementById('CameraFeed'),
 canvas: document.getElementById('sharkiecanvas'),
@@ -9,10 +15,10 @@ let photoStage = 0; // 0 = top, 1 = bottom, 2 = done
 function moveVideoToHalf(index) {
   const { video } = elements;
   video.style.display = 'block';
-  video.style.top = index === 0 ? '0' : '50%';
+  video.style.top = index === 0 ? '0' : '33.3%';
   video.style.left = '0';
   video.style.width = '100%';
-  video.style.height = '50%';
+  video.style.height = '33.3%';
 }
 
  function setupCamera() { navigator.mediaDevices.getUserMedia({video: true})
@@ -77,9 +83,14 @@ function takepics(){
   photoStage++;
 
   if (photoStage === 1) {
-    moveVideoToHalf(1);
+    moveVideoToHalf(2);
     elements.clickybuttonbtn.disabled = false;
   } else if (photoStage === 2) {
+    moveVideoToHalf(3);
+    elements.clickybuttonbtn.disabled = false; }
+    else if (photoStage === 3) {
+
+    
     PhotoStripdone(); }
 }
 
@@ -94,17 +105,17 @@ function PhotoStripdone(){
   frame.onload = () => {
     ctx.drawImage(frame, 0, 0, WIDTH, HEIGHT);
 
-    // Save final canvas to localStorage
+    
     const dataURL = elements.canvas.toDataURL('image/png');
     localStorage.setItem('photoStrip', dataURL);
 
-    // Navigate after slight delay to ensure canvas rendered
+    
     setTimeout(() => {
-      window.location.href = 'final.html';
+      window.location.href = 'sharkie.html';
     }, 50);
   };
 
-  // Handle cached image where onload might not fire
+ 
   frame.complete && frame.onload(); 
 }
 
