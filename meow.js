@@ -1,46 +1,70 @@
 const WIDTH = 500;
 const HEIGHT = 1470;
-const HALF = HEIGHT / 2;
-
-
+const THIRD = HEIGHT / 3;
 
 const elements = {
- video: document.getElementById('CameraFeed'),
-canvas: document.getElementById('sharkiecanvas'),
-ctx: document.getElementById('sharkiecanvas').getContext('2d'),
-clickybuttonbtn: document.getElementById('clickybutton'),
-countdownEl: document.querySelector('.countdown-timer'),
-}
-let photoStage = 0; // 0 = top, 1 = bottom, 2 = done
-function moveVideoToHalf(index) {
+  video: document.getElementById('CameraFeed'),
+  canvas: document.getElementById('sharkiecanvas'),
+  ctx: null,
+  clickybuttonbtn: document.getElementById('clickybutton'),
+  countdownEl: document.querySelector('.countdown-timer'),
+};
+
+elements.ctx = elements.canvas ? elements.canvas.getContext('2d') : null;
+
+let photoStage = 0; // 0 = top, 1 = middle, 2 = bottom, 3 = done
+
+function moveVideoToThird(index) {
   const { video } = elements;
+  if (!video) return;
   video.style.display = 'block';
-  video.style.top = index === 0 ? '0' : '33.3%';
   video.style.left = '0';
   video.style.width = '100%';
   video.style.height = '33.3%';
+  if (index === 0) video.style.top = '0';
+  else if (index === 1) video.style.top = '33.3%';
+  else video.style.top = '66.6%';
 }
 
- function setupCamera() { navigator.mediaDevices.getUserMedia({video: true})
-.then(Stream => {
-    CameraFeed.srcObject = Stream;
-    CameraFeed.play();
-})
-.catch(error => {
-    console.error('labubu babies:', error );
-});}
+function setupCamera() {
+  const { video, canvas } = elements;
+  if (!video) return;
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+      video.play();
+    })
+    .catch(error => {
+      console.error('Error accessing camera:', error);
+    });
+
+  
+  if (canvas) {
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+  }
+
+  video.addEventListener('loadedmetadata', () => {
+    
+    if (elements.canvas) {
+      elements.canvas.width = WIDTH;
+      elements.canvas.height = HEIGHT;
+    }
+  });
+}
 
 function startCountdown(callback) {
-  let count = 3;
   const { countdownEl } = elements;
+  if (!countdownEl) { callback(); return; }
 
-  countdownEl.textContent = countdown;
+  let count = 3;
+  countdownEl.textContent = count;
   countdownEl.style.display = 'flex';
 
   const intervalId = setInterval(() => {
     count--;
     if (count > 0) {
-      countdownEl.textContent = countdown;
+      countdownEl.textContent = count;
     } else {
       clearInterval(intervalId);
       countdownEl.style.display = 'none';
@@ -49,93 +73,80 @@ function startCountdown(callback) {
   }, 1000);
 }
 
-function takepics(){
-    const { video, ctx } = elements;
-  const yOffset = photoStage === 0 ? 0 : HALF;
+function takepics() {
+  const { video, ctx, clickybuttonbtn } = elements;
+  if (!video || !ctx) return;
 
-  const videoWidth = video.videoWidth;
-  const videoHeight = video.videoHeight;
-  const targetAspect = WIDTH / HALF;
-  const videoAspect = videoWidth / videoHeight;
+  const yOffset = photoStage * THIRD;
 
-  let sx, sy, sw, sh;
+  const videoWidth = video.videoWidth || video.clientWidth;
+  const videoHeight = video.videoHeight || video.clientHeight;
 
-  if (videoAspect > targetAspect) {
-   
-    sh = videoHeight;
-    sw = videoHeight * targetAspect;
-    sx = (videoWidth - sw) / 2;
-    sy = 0;
-  } else {
-    
-    sw = videoWidth;
-    sh = videoWidth / targetAspect;
-    sx = 0;
-    sy = (videoHeight - sh) / 2;
-  }
+  
+  const scale = Math.min(WIDTH / videoWidth, THIRD / videoHeight);
+  const dw = Math.round(videoWidth * scale);
+  const dh = Math.round(videoHeight * scale);
+  const dx = Math.round((WIDTH - dw) / 2);
+  const dy = Math.round(yOffset + (THIRD - dh) / 2);
 
   ctx.save();
   ctx.translate(WIDTH, 0);
   ctx.scale(-1, 1);
-  ctx.drawImage(video, sx, sy, sw, sh, 0, yOffset, WIDTH, HALF);
+  const mirroredX = WIDTH - dx - dw; // flip horizontally
+  ctx.drawImage(video, 0, 0, videoWidth, videoHeight, mirroredX, dy, dw, dh);
   ctx.restore();
 
   photoStage++;
 
-  if (photoStage === 1) {
-    moveVideoToHalf(2);
-    elements.clickybuttonbtn.disabled = false;
-  } else if (photoStage === 2) {
-    moveVideoToHalf(3);
-    elements.clickybuttonbtn.disabled = false; }
-    else if (photoStage === 3) {
-
-    
-    PhotoStripdone(); }
+  
+  if (photoStage < 3) {
+    if (clickybuttonbtn) clickybuttonbtn.disabled = false;
+    moveVideoToThird(photoStage);
+  } else {
+    PhotoStripdone();
+  }
 }
 
+function PhotoStripdone() {
+  const { video, ctx, canvas } = elements;
+  if (video) video.style.display = 'none';
 
-function PhotoStripdone(){
-    const { video, ctx, clickybuttonbtn} = elements;
-  video.style.display = 'none';
-
-  const frame = new Image();
-  frame.src = 'Assets/photobooth/camerapage/4.png';
-
-  frame.onload = () => {
-    ctx.drawImage(frame, 0, 0, WIDTH, HEIGHT);
-
-    
-    const dataURL = elements.canvas.toDataURL('image/png');
+  
+  if (canvas) {
+    const dataURL = canvas.toDataURL('image/png');
     localStorage.setItem('photoStrip', dataURL);
-
-    
-    setTimeout(() => {
-      window.location.href = 'sharkie.html';
-    }, 50);
-  };
-
- 
-  frame.complete && frame.onload(); 
+    console.log('photoStrip saved to localStorage');
+  }
 }
 
 function setupEventListeners() {
-  const { clickybuttonbtn, video } = elements;
+  const { clickybuttonbtn } = elements;
+  if (!clickybuttonbtn) return;
 
   clickybuttonbtn.addEventListener('click', () => {
-    if (photoStage > 1) return;
+    console.log('capture button clicked, photoStage=', photoStage);
+    if (photoStage >= 3) return;
     clickybuttonbtn.disabled = true;
     startCountdown(takepics);
   });
+
   window.addEventListener('resize', () => {
-    if (photoStage === 0) moveVideoToHalf(0);
-    else if (photoStage === 1) moveVideoToHalf(1);
+    
+    if (photoStage <= 0) moveVideoToThird(0);
+    else if (photoStage === 1) moveVideoToThird(1);
+    else moveVideoToThird(2);
   });
 }
 
 function startbooth() {
+ 
+  if (elements.canvas) {
+    elements.canvas.width = WIDTH;
+    elements.canvas.height = HEIGHT;
+  }
   setupCamera();
   setupEventListeners();
+  moveVideoToThird(0);
 }
 
 startbooth();
